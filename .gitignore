@@ -1,0 +1,21 @@
+# Credenziali / dati personali (NON pubblicare)
+config.json
+*.har
+
+# Cache Python
+__pycache__/
+*.pyc
+*.pyo
+
+# Build dell'add-on (generati dallo script di build)
+*.zip
+
+# File di sistema
+.DS_Store
+Thumbs.db
+*.log
+
+# Icone sorgente grandi / temporanee (non necessarie nel repo)
+icona_big.png
+# Cartella di esempio (altri add-on, non incluso)
+esempi/

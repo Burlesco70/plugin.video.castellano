@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<settings version="1">
+  <section id="plugin.video.castellano">
+    <category id="rtve" label="30100">
+      <group id="1" label="30100">
+        <setting id="rtve_email" type="string" label="30101" help="30103">
+          <level>0</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>30101</heading>
+          </control>
+        </setting>
+        <setting id="rtve_password" type="string" label="30102" help="30103">
+          <level>0</level>
+          <default/>
+          <constraints>
+            <allowempty>true</allowempty>
+          </constraints>
+          <control type="edit" format="string">
+            <heading>30102</heading>
+            <hidden>true</hidden>
+          </control>
+        </setting>
+      </group>
+    </category>
+    <category id="tdt" label="30110">
+      <group id="1" label="30110">
+        <setting id="tdt_url" type="string" label="30111" help="30112">
+          <level>0</level>
+          <default>https://www.tdtchannels.com/lists/tv.m3u8</default>
+          <control type="edit" format="string">
+            <heading>30111</heading>
+          </control>
+        </setting>
+      </group>
+    </category>
+  </section>
+</settings>

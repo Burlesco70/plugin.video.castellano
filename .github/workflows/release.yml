@@ -1,0 +1,46 @@
+name: Build & Release
+
+# Crea in automatico lo zip dell'add-on e una Release GitHub quando si
+# pubblica un tag di versione (es. v1.0.0).
+#
+# Uso:
+#   git tag v1.0.0
+#   git push origin v1.0.0
+# In alternativa: tab "Actions" -> "Build & Release" -> "Run workflow".
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.x'
+
+      - name: Verify addon.xml is valid XML
+        run: python -c "import xml.dom.minidom,sys; xml.dom.minidom.parse('plugin/plugin.video.castellano/addon.xml'); print('addon.xml OK')"
+
+      - name: Build add-on zip
+        run: python build.py
+
+      - name: Show build output
+        run: ls -la plugin/*.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: plugin/plugin.video.castellano-*.zip
+          generate_release_notes: true
+          fail_on_unmatched_files: true

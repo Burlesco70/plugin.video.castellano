@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="plugin.video.castellano"
+       name="Castellano - TV spagnola"
+       version="1.0.0"
+       provider-name="Burlesco70">
+  <requires>
+    <import addon="xbmc.python" version="3.0.0"/>
+    <import addon="script.module.requests" version="2.22.0"/>
+  </requires>
+  <extension point="xbmc.python.pluginsource" library="default.py">
+    <provides>video</provides>
+  </extension>
+  <extension point="xbmc.addon.metadata">
+    <summary lang="it">Impara lo spagnolo guardando la TV spagnola</summary>
+    <summary lang="en">Learn Spanish by watching Spanish TV</summary>
+    <summary lang="es">Aprende español viendo la TV española</summary>
+    <description lang="it">Plugin personale per guardare la TV spagnola e imparare il castigliano. Canali in diretta: RTVE (La 1, La 2, Teledeporte, 24h, Clan), lista TDT Channels per categoria (con filtro dei feed solo-Spagna) e Pluto TV Spagna. On-demand RTVE (Telediario, documentari, serie) con sottotitoli in spagnolo.</description>
+    <description lang="en">Personal add-on to watch Spanish TV and learn Castilian. Live channels: RTVE (La 1, La 2, Teledeporte, 24h, Clan), TDT Channels list grouped by category (Spain-only feeds filtered out) and Pluto TV Spain. RTVE on-demand (news, documentaries, series) with Spanish subtitles.</description>
+    <description lang="es">Complemento personal para ver la TV española y aprender castellano. Canales en directo: RTVE (La 1, La 2, Teledeporte, 24h, Clan), lista TDT Channels por categorías (filtrando los feeds solo-España) y Pluto TV España. RTVE a la carta (informativos, documentales, series) con subtítulos en español.</description>
+    <news lang="it">v1.0.0 - Prima versione: RTVE in diretta, TDT per categoria, Pluto TV Spagna, RTVE on-demand con sottotitoli.</news>
+    <news lang="en">v1.0.0 - First release: RTVE live, TDT by category, Pluto TV Spain, RTVE on-demand with subtitles.</news>
+    <news lang="es">v1.0.0 - Primera versión: RTVE en directo, TDT por categorías, Pluto TV España, RTVE a la carta con subtítulos.</news>
+    <disclaimer lang="it">Progetto personale a scopo didattico (apprendimento dello spagnolo). Gli stream appartengono ai rispettivi titolari (RTVE, Pluto TV, TDT Channels). Rispetta i termini di servizio e le condizioni d'uso di ciascun fornitore e le norme sul copyright del tuo paese. Alcuni contenuti possono essere geobloccati o protetti da DRM e non sono riproducibili con Kodi base.</disclaimer>
+    <disclaimer lang="en">Personal project for educational purposes (learning Spanish). Streams belong to their respective owners (RTVE, Pluto TV, TDT Channels). Respect each provider's terms of service and the copyright laws of your country. Some content may be geo-blocked or DRM-protected and cannot be played with base Kodi.</disclaimer>
+    <disclaimer lang="es">Proyecto personal con fines educativos (aprender español). Los streams pertenecen a sus respectivos titulares (RTVE, Pluto TV, TDT Channels). Respeta los términos de servicio de cada proveedor y las leyes de copyright de tu país. Algunos contenidos pueden estar geobloqueados o protegidos con DRM y no se pueden reproducir con Kodi base.</disclaimer>
+    <platform>all</platform>
+    <license>GPL-3.0-only</license>
+    <language>es it</language>
+    <assets>
+      <icon>icon.png</icon>
+      <fanart>fanart.jpg</fanart>
+    </assets>
+  </extension>
+</addon>

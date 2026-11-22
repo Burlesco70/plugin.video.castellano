@@ -1,0 +1,34 @@
+# Kodi Media Center language file
+# Addon Name: Castellano - TV spagnola
+msgid ""
+msgstr ""
+"Content-Type: text/plain; charset=UTF-8\n"
+"Language: en\n"
+
+msgctxt "#30100"
+msgid "RTVE Account"
+msgstr "RTVE Account"
+
+msgctxt "#30101"
+msgid "RTVE Email"
+msgstr "RTVE Email"
+
+msgctxt "#30102"
+msgid "RTVE Password"
+msgstr "RTVE Password"
+
+msgctxt "#30103"
+msgid "Not required for RTVE live channels (they work without login). Useful only for content that requires an account."
+msgstr "Not required for RTVE live channels (they work without login). Useful only for content that requires an account."
+
+msgctxt "#30112"
+msgid "Leave the default URL."
+msgstr "Leave the default URL."
+
+msgctxt "#30110"
+msgid "TDT List"
+msgstr "TDT List"
+
+msgctxt "#30111"
+msgid "TDT playlist URL (m3u8)"
+msgstr "TDT playlist URL (m3u8)"
