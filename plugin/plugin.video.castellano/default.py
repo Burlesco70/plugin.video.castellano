@@ -47,6 +47,7 @@ import tdt
 import rtve
 import rtve_vod
 import pluto
+import samsung
 BASE_URL = sys.argv[0]
 HANDLE = int(sys.argv[1])
 
@@ -103,6 +104,7 @@ def show_main_menu():
     add_dir_item('[COLOR FF33B5E5]Canali RTVE in diretta[/COLOR]', {'action': 'rtve'})
     add_dir_item('[COLOR FF33B5E5]Canali TDT (per categoria)[/COLOR]', {'action': 'tdt'})
     add_dir_item('[COLOR FF33B5E5]Pluto TV Spagna[/COLOR]', {'action': 'pluto'})
+    add_dir_item('[COLOR FF33B5E5]FAST Spagna (sperimentale)[/COLOR]', {'action': 'samsung'})
     # --- On-demand (verde) ---
     add_dir_item('[COLOR FF4CAF50]RTVE on-demand (con sottotitoli)[/COLOR]', {'action': 'vod'})
     xbmcplugin.endOfDirectory(HANDLE)
@@ -171,6 +173,19 @@ def show_pluto_group(group):
             build_url({'action': 'play_pluto', 'cid': ch['id']}),
             icon=ch.get('icon') or None,
             mode='resolver',
+        )
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def show_samsung_channels():
+    for ch in samsung.get_channels():
+        add_video_item(
+            ch['name'],
+            samsung.resolve(ch['url']),
+            icon=ch.get('icon') or None,
+            plot=('Canale FAST gratuito (SPERIMENTALE). Disponibilità variabile '
+                  'e pubblicità.'),
+            mode='direct',
         )
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -312,6 +327,8 @@ def router():
         show_pluto_group(params.get('group'))
     elif action == 'play_pluto':
         play_pluto(params.get('cid'))
+    elif action == 'samsung':
+        show_samsung_channels()
     elif action == 'vod_eps':
         show_vod_episodes(params.get('slug'))
     elif action == 'play_vod':

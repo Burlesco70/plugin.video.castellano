@@ -1,5 +1,6 @@
 # Credenziali / dati personali (NON pubblicare)
 config.json
+note.txt
 *.har
 
 # Cache Python

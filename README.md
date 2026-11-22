@@ -15,6 +15,9 @@ Il menu principale separa **TV in diretta** (azzurro) da **on-demand** (verde):
   marcati `GEO` (solo Spagna) vengono scartati automaticamente.
 - **Pluto TV Spagna** (azzurro) — ~56 canali gratuiti (con pubblicità),
   divisi per categoria (Cinema, Serie, Documentari, Bambini...).
+- **FAST Spagna (sperimentale)** (azzurro) — canali FAST gratuiti (con
+  pubblicità), subset verificato ispirato a Samsung TV Plus. Lista ridotta e
+  sperimentale, con disponibilità variabile.
 - **RTVE on-demand** (verde) — programmi RTVE (Telediario, documentari, serie)
   con sottotitoli spagnoli funzionanti.
 
@@ -114,7 +117,8 @@ plugin.video.castellano/
         ├── tdt.py             # lista TDT Channels + filtro GEO
         ├── rtve.py            # canali RTVE in diretta
         ├── rtve_vod.py        # RTVE on-demand + sottotitoli
-        └── pluto.py           # canali Pluto TV Spagna
+        ├── pluto.py           # canali Pluto TV Spagna
+        └── samsung.py         # canali FAST Spagna (sperimentale)
 ```
 
 ## Uso personale / Disclaimer
