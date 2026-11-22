@@ -105,7 +105,7 @@ def show_main_menu():
     add_dir_item('[COLOR FF33B5E5]Canali RTVE in diretta[/COLOR]', {'action': 'rtve'})
     add_dir_item('[COLOR FF33B5E5]Canali TDT (per categoria)[/COLOR]', {'action': 'tdt'})
     add_dir_item('[COLOR FF33B5E5]Pluto TV Spagna[/COLOR]', {'action': 'pluto'})
-    add_dir_item('[COLOR FF33B5E5]Plex (FAST) Spagna[/COLOR]', {'action': 'plex'})
+    add_dir_item('[COLOR FF33B5E5]Plex Spagna[/COLOR]', {'action': 'plex'})
     add_dir_item('[COLOR FF33B5E5]FAST Spagna (sperimentale)[/COLOR]', {'action': 'samsung'})
     # --- On-demand (verde) ---
     add_dir_item('[COLOR FF4CAF50]RTVE on-demand (con sottotitoli)[/COLOR]', {'action': 'vod'})
@@ -192,16 +192,14 @@ def show_samsung_channels():
     xbmcplugin.endOfDirectory(HANDLE)
 
 
-def show_plex_channels():
-    chans = plex.get_channels()
-    if not chans:
-        xbmcgui.Dialog().ok(
-            ADDON_NAME,
-            'Impossibile caricare la lista Plex (errore di rete).',
-        )
-        xbmcplugin.endOfDirectory(HANDLE)
-        return
-    for ch in chans:
+def show_plex_groups():
+    for g in plex.get_groups():
+        add_dir_item(g, {'action': 'plex_group', 'group': g})
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def show_plex_group(group):
+    for ch in plex.get_channels_by_group(group):
         add_video_item(
             ch['name'],
             build_url({'action': 'play_plex', 'key': ch['key']}),
@@ -364,7 +362,9 @@ def router():
     elif action == 'samsung':
         show_samsung_channels()
     elif action == 'plex':
-        show_plex_channels()
+        show_plex_groups()
+    elif action == 'plex_group':
+        show_plex_group(params.get('group'))
     elif action == 'play_plex':
         play_plex(params.get('key'))
     elif action == 'vod_eps':

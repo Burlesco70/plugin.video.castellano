@@ -25,6 +25,18 @@ msgctxt "#30112"
 msgid "Lasciare l'URL predefinito."
 msgstr "Lasciare l'URL predefinito."
 
+msgctxt "#30120"
+msgid "Plex"
+msgstr "Plex"
+
+msgctxt "#30121"
+msgid "Token Plex (opzionale)"
+msgstr "Token Plex (opzionale)"
+
+msgctxt "#30122"
+msgid "Consigliato: metti il tuo token Plex personale (account gratuito) per evitare il rate-limit (HTTP 429) del token pubblico condiviso. Come ottenerlo: accedi a plex.tv, apri un video su app.plex.tv e copia l'header X-Plex-Token dalle richieste di rete (F12)."
+msgstr "Consigliato: metti il tuo token Plex personale (account gratuito) per evitare il rate-limit (HTTP 429) del token pubblico condiviso. Come ottenerlo: accedi a plex.tv, apri un video su app.plex.tv e copia l'header X-Plex-Token dalle richieste di rete (F12)."
+
 msgctxt "#30110"
 msgid "Lista TDT"
 msgstr "Lista TDT"
