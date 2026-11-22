@@ -15,6 +15,10 @@ Il menu principale separa **TV in diretta** (azzurro) da **on-demand** (verde):
   marcati `GEO` (solo Spagna) vengono scartati automaticamente.
 - **Pluto TV Spagna** (azzurro) — ~56 canali gratuiti (con pubblicità),
   divisi per categoria (Cinema, Serie, Documentari, Bambini...).
+- **Plex Spagna** (azzurro) — ~267 canali FAST gratuiti, divisi per categoria
+  (Sport, Musica, Serie, Documentari, Notiziari...). Consigliato inserire il
+  proprio token Plex gratuito nelle impostazioni per evitare il rate-limit del
+  token pubblico condiviso.
 - **FAST Spagna (sperimentale)** (azzurro) — canali FAST gratuiti (con
   pubblicità), subset verificato ispirato a Samsung TV Plus. Lista ridotta e
   sperimentale, con disponibilità variabile.
@@ -89,6 +93,21 @@ NON sono necessarie per i canali in diretta: le dirette RTVE sono pubbliche e
 funzionano senza login. I campi email/password nelle impostazioni sono lasciati
 solo per eventuali contenuti futuri che richiedano l'accesso.
 
+## Token Plex
+
+I canali **Plex Spagna** funzionano anche senza token (usando un token pubblico
+condiviso), ma quel token è spesso soggetto a rate-limit (HTTP 429) e alcuni
+canali non partono. Per la massima stabilità conviene inserire il proprio token
+Plex gratuito:
+
+1. Crea/accedi a un account su [plex.tv](https://plex.tv) (gratis).
+2. Ottieni il token: apri `https://plex.tv/users/sign_in` con le tue credenziali
+   e copia il valore `<authToken>` (token account, stabile), oppure leggi
+   l'header `X-Plex-Token` dalle richieste di rete (F12) su `app.plex.tv`.
+3. In Kodi: Add-on → Castellano → Configura → campo "Token Plex".
+
+Il token è salvato solo nelle tue impostazioni Kodi (non nello zip).
+
 ## Note tecniche e limiti
 
 - **Geoblock**: alcuni contenuti spagnoli sono visibili solo da rete spagnola.
@@ -118,6 +137,7 @@ plugin.video.castellano/
         ├── rtve.py            # canali RTVE in diretta
         ├── rtve_vod.py        # RTVE on-demand + sottotitoli
         ├── pluto.py           # canali Pluto TV Spagna
+        ├── plex.py            # canali Plex Spagna (token + categorie)
         └── samsung.py         # canali FAST Spagna (sperimentale)
 ```
 
