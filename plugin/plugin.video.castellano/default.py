@@ -48,6 +48,7 @@ import rtve
 import rtve_vod
 import pluto
 import samsung
+import plex
 BASE_URL = sys.argv[0]
 HANDLE = int(sys.argv[1])
 
@@ -104,6 +105,7 @@ def show_main_menu():
     add_dir_item('[COLOR FF33B5E5]Canali RTVE in diretta[/COLOR]', {'action': 'rtve'})
     add_dir_item('[COLOR FF33B5E5]Canali TDT (per categoria)[/COLOR]', {'action': 'tdt'})
     add_dir_item('[COLOR FF33B5E5]Pluto TV Spagna[/COLOR]', {'action': 'pluto'})
+    add_dir_item('[COLOR FF33B5E5]Plex (FAST) Spagna[/COLOR]', {'action': 'plex'})
     add_dir_item('[COLOR FF33B5E5]FAST Spagna (sperimentale)[/COLOR]', {'action': 'samsung'})
     # --- On-demand (verde) ---
     add_dir_item('[COLOR FF4CAF50]RTVE on-demand (con sottotitoli)[/COLOR]', {'action': 'vod'})
@@ -188,6 +190,38 @@ def show_samsung_channels():
             mode='direct',
         )
     xbmcplugin.endOfDirectory(HANDLE)
+
+
+def show_plex_channels():
+    chans = plex.get_channels()
+    if not chans:
+        xbmcgui.Dialog().ok(
+            ADDON_NAME,
+            'Impossibile caricare la lista Plex (errore di rete).',
+        )
+        xbmcplugin.endOfDirectory(HANDLE)
+        return
+    for ch in chans:
+        add_video_item(
+            ch['name'],
+            build_url({'action': 'play_plex', 'key': ch['key']}),
+            icon=ch.get('icon') or None,
+            plot='Canale FAST gratuito (Plex). Pubblicità.',
+            mode='resolver',
+        )
+    xbmcplugin.endOfDirectory(HANDLE)
+
+
+def play_plex(key):
+    stream_url = plex.resolve(key)
+    li = xbmcgui.ListItem(path=stream_url)
+    li.setProperty('IsPlayable', 'true')
+    li.setProperty('inputstream', 'inputstream.adaptive')
+    li.setProperty('inputstream.adaptive.stream_headers', plex.headers_string())
+    li.setProperty('inputstream.adaptive.manifest_headers', plex.headers_string())
+    li.setMimeType('application/vnd.apple.mpegurl')
+    li.setContentLookup(True)
+    xbmcplugin.setResolvedUrl(HANDLE, True, li)
 
 
 def play_pluto(channel_id):
@@ -329,6 +363,10 @@ def router():
         play_pluto(params.get('cid'))
     elif action == 'samsung':
         show_samsung_channels()
+    elif action == 'plex':
+        show_plex_channels()
+    elif action == 'play_plex':
+        play_plex(params.get('key'))
     elif action == 'vod_eps':
         show_vod_episodes(params.get('slug'))
     elif action == 'play_vod':
