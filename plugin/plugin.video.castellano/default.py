@@ -49,6 +49,7 @@ import rtve_vod
 import pluto
 import samsung
 import plex
+import telemadrid
 BASE_URL = sys.argv[0]
 HANDLE = int(sys.argv[1])
 
@@ -123,6 +124,20 @@ def show_tdt_groups():
 
 
 def show_tdt_group(group):
+    # Telemadrid (canale nazionale) come PRIMA voce della sezione
+    # "C. de Madrid": passa dal resolver perche' lo stream si ottiene a
+    # runtime dall'API Galgo (token sempre fresco).
+    if group == telemadrid.GROUP:
+        for ch in telemadrid.CHANNELS:
+            add_video_item(
+                ch['name'],
+                build_url({'action': 'play_telemadrid', 'cid': ch['id']}),
+                icon=ch.get('logo') or None,
+                plot='Canale Telemadrid in diretta (stream ufficiale via API '
+                     'Galgo). Il nazionale puo\' essere geobloccato fuori '
+                     'dalla Spagna.',
+                mode='resolver',
+            )
     channels = tdt.get_channels_by_group(group)
     for ch in channels:
         add_video_item(
@@ -217,6 +232,24 @@ def play_plex(key):
     li.setProperty('inputstream', 'inputstream.adaptive')
     li.setProperty('inputstream.adaptive.stream_headers', plex.headers_string())
     li.setProperty('inputstream.adaptive.manifest_headers', plex.headers_string())
+    li.setMimeType('application/vnd.apple.mpegurl')
+    li.setContentLookup(True)
+    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+
+
+def play_telemadrid(cid):
+    stream_url, err = telemadrid.resolve(cid or telemadrid.TELEMADRID_ID)
+    if not stream_url:
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+        xbmcgui.Dialog().ok(ADDON_NAME, err or 'Impossibile ottenere lo stream '
+                            'Telemadrid.')
+        return
+    li = xbmcgui.ListItem(path=stream_url)
+    li.setProperty('IsPlayable', 'true')
+    li.setProperty('inputstream', 'inputstream.adaptive')
+    _hdr = telemadrid.headers_string()
+    li.setProperty('inputstream.adaptive.stream_headers', _hdr)
+    li.setProperty('inputstream.adaptive.manifest_headers', _hdr)
     li.setMimeType('application/vnd.apple.mpegurl')
     li.setContentLookup(True)
     xbmcplugin.setResolvedUrl(HANDLE, True, li)
@@ -359,6 +392,8 @@ def router():
         show_pluto_group(params.get('group'))
     elif action == 'play_pluto':
         play_pluto(params.get('cid'))
+    elif action == 'play_telemadrid':
+        play_telemadrid(params.get('cid'))
     elif action == 'samsung':
         show_samsung_channels()
     elif action == 'plex':

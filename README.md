@@ -12,7 +12,11 @@ Il menu principale separa **TV in diretta** (azzurro) da **on-demand** (verde):
 - **Canali TDT** (azzurro) — oltre 400 canali spagnoli liberi dalla lista
   [TDT Channels](https://www.tdtchannels.com/lists/tv.m3u8), organizzati per
   categoria (Andalucía, Cataluña, Generalistas, Deportivos, ecc.). I feed
-  marcati `GEO` (solo Spagna) vengono scartati automaticamente.
+  marcati `GEO` (solo Spagna) vengono scartati automaticamente. Nella sezione
+  **C. de Madrid** sono aggiunte in cima le dirette ufficiali di **Telemadrid**
+  (nazionale), **LaOtra** e **Telemadrid Internacional** (stream live via API
+  Galgo). LaOtra e Internacional sono visibili anche dall'estero; il nazionale
+  è geobloccato fuori dalla Spagna.
 - **Pluto TV Spagna** (azzurro) — ~56 canali gratuiti (con pubblicità),
   divisi per categoria (Cinema, Serie, Documentari, Bambini...).
 - **Plex Spagna** (azzurro) — ~267 canali FAST gratuiti, divisi per categoria
@@ -138,7 +142,8 @@ plugin.video.castellano/
         ├── rtve_vod.py        # RTVE on-demand + sottotitoli
         ├── pluto.py           # canali Pluto TV Spagna
         ├── plex.py            # canali Plex Spagna (token + categorie)
-        └── samsung.py         # canali FAST Spagna (sperimentale)
+        ├── samsung.py         # canali FAST Spagna (sperimentale)
+        └── telemadrid.py      # dirette Telemadrid/LaOtra/Internacional (API Galgo)
 ```
 
 ## Uso personale / Disclaimer
