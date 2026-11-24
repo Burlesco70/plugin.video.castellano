@@ -44,3 +44,23 @@ msgstr "TDT List"
 msgctxt "#30111"
 msgid "TDT playlist URL (m3u8)"
 msgstr "TDT playlist URL (m3u8)"
+
+msgctxt "#30130"
+msgid "Playback"
+msgstr "Playback"
+
+msgctxt "#30131"
+msgid "Playback engine"
+msgstr "Playback engine"
+
+msgctxt "#30132"
+msgid "Automatic: use InputStream Adaptive (if missing, tries to install it via inputstreamhelper) and fall back to ffmpegdirect. Force ffmpegdirect: always use ffmpegdirect (useful for live streams Adaptive does not play well)."
+msgstr "Automatic: use InputStream Adaptive (if missing, tries to install it via inputstreamhelper) and fall back to ffmpegdirect. Force ffmpegdirect: always use ffmpegdirect (useful for live streams Adaptive does not play well)."
+
+msgctxt "#30133"
+msgid "Automatic (adaptive, ffmpegdirect fallback)"
+msgstr "Automatic (adaptive, ffmpegdirect fallback)"
+
+msgctxt "#30134"
+msgid "Force ffmpegdirect"
+msgstr "Force ffmpegdirect"

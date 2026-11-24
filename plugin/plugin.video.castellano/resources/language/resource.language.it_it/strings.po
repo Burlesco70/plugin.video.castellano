@@ -44,3 +44,23 @@ msgstr "Lista TDT"
 msgctxt "#30111"
 msgid "URL playlist TDT (m3u8)"
 msgstr "URL playlist TDT (m3u8)"
+
+msgctxt "#30130"
+msgid "Riproduzione"
+msgstr "Riproduzione"
+
+msgctxt "#30131"
+msgid "Motore di riproduzione"
+msgstr "Motore di riproduzione"
+
+msgctxt "#30132"
+msgid "Automatico: usa InputStream Adaptive (se manca prova a installarlo con inputstreamhelper) e ripiega su ffmpegdirect. Forza ffmpegdirect: usa sempre ffmpegdirect (utile per live che Adaptive non riproduce bene)."
+msgstr "Automatico: usa InputStream Adaptive (se manca prova a installarlo con inputstreamhelper) e ripiega su ffmpegdirect. Forza ffmpegdirect: usa sempre ffmpegdirect (utile per live che Adaptive non riproduce bene)."
+
+msgctxt "#30133"
+msgid "Automatico (adaptive, fallback ffmpegdirect)"
+msgstr "Automatico (adaptive, fallback ffmpegdirect)"
+
+msgctxt "#30134"
+msgid "Forza ffmpegdirect"
+msgstr "Forza ffmpegdirect"

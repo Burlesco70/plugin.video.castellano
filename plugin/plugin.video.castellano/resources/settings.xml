@@ -51,5 +51,22 @@
         </setting>
       </group>
     </category>
+    <category id="playback" label="30130">
+      <group id="1" label="30130">
+        <setting id="playback_engine" type="integer" label="30131" help="30132">
+          <level>0</level>
+          <default>0</default>
+          <constraints>
+            <options>
+              <option label="30133">0</option>
+              <option label="30134">1</option>
+            </options>
+          </constraints>
+          <control type="list" format="integer">
+            <heading>30131</heading>
+          </control>
+        </setting>
+      </group>
+    </category>
   </section>
 </settings>
