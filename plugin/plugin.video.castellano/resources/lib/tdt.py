@@ -4,8 +4,9 @@
 # Castellano - TV spagnola. GNU GPL v3 - vedi file LICENSE.
 """Utility per la lista TDT Channels (stream liberi in formato m3u8)."""
 
-import requests
 import xbmcaddon
+
+import netutil
 
 ADDON = xbmcaddon.Addon()
 
@@ -60,13 +61,13 @@ def get_channels(tdt_url=None):
     """Scarica e parsa la playlist TDT Channels."""
     url = tdt_url or ADDON.getSetting('tdt_url') or DEFAULT_TDT_URL
     try:
-        resp = requests.get(url, timeout=20, headers=_HEADERS)
-        resp.raise_for_status()
+        text = netutil.get_text(url, timeout=20, retries=2)
     except Exception as e:
-        return [{'name': 'Errore download TDT: %s' % e, 'url': ''}]
+        return [{'name': 'Errore download TDT: %s' % e, 'url': '',
+                 'sources': [], 'mime': '', 'group': '', 'icon': ''}]
 
     channels = []
-    lines = [l.rstrip() for l in resp.text.splitlines()]
+    lines = [l.rstrip() for l in text.splitlines()]
     i = 0
     while i < len(lines):
         line = lines[i].strip()
@@ -96,12 +97,17 @@ def get_channels(tdt_url=None):
                     'icon': icon,
                     'group': group,
                     'fanart': '',
+                    'sources': [stream_url],
+                    'mime': netutil.guess_mime(stream_url),
                 })
         i += 1
 
-    # raggruppa per nome (un canale può avere più sorgenti) e scegli la
-    # sorgente migliore: penalizza gli URL con token firmati (segmenti es.
-    # esadecimali molto lunghi) che scadono e causano problemi di riproduzione.
+    # raggruppa per nome (un canale puo' avere piu' sorgenti) e ordina le
+    # sorgenti per affidabilita': penalizza gli URL con token firmati (segmenti
+    # es. esadecimali molto lunghi) che scadono e causano problemi di
+    # riproduzione. Conserviamo TUTTE le sorgenti ordinate (non solo la prima)
+    # cosi' il player puo' ripiegare su un'alternativa se la prima e' morta o
+    # geobloccata.
     order = []
     by_name = {}
     for ch in channels:
@@ -113,9 +119,24 @@ def get_channels(tdt_url=None):
 
     unique = []
     for nm in order:
-        best = min(by_name[nm], key=lambda c: _url_score(c['url']))
+        ranked = sorted(by_name[nm], key=lambda c: _url_score(c['url']))
+        best = dict(ranked[0])
+        best['sources'] = [c['url'] for c in ranked]
+        best['mime'] = netutil.guess_mime(best['url'])
         unique.append(best)
     return unique
+
+
+def find_channel(name, group=None):
+    """Ritorna il canale (con tutte le sue sorgenti) per nome ed eventuale
+    gruppo. Usato dal resolver per ripescare le sorgenti al momento del click."""
+    for ch in get_channels():
+        if ch['name'] != name:
+            continue
+        if group is not None and (ch.get('group') or 'Altri') != group:
+            continue
+        return ch
+    return None
 
 
 def _url_score(url):

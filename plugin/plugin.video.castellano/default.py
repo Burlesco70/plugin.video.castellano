@@ -50,6 +50,7 @@ import pluto
 import samsung
 import plex
 import telemadrid
+import netutil
 BASE_URL = sys.argv[0]
 HANDLE = int(sys.argv[1])
 
@@ -140,6 +141,10 @@ def play_resolved(stream_url, title='', mime='application/vnd.apple.mpegurl',
     e InputStream Adaptive.
     """
     li = xbmcgui.ListItem(label=title, path=stream_url, offscreen=True)
+    if not netutil.is_valid_url(stream_url):
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+        xbmcgui.Dialog().ok(ADDON_NAME, 'URL dello stream non valido.')
+        return
     if not _configure_stream_item(li, mime, headers=headers, subtitles=subtitles):
         xbmcgui.Dialog().ok(
             ADDON_NAME,
@@ -174,9 +179,10 @@ def add_video_item(title, url, icon=None, fanart=None, plot='', mode='direct',
     li.setProperty('IsPlayable', 'true')
     li.setContentLookup(False)
     if mode == 'direct':
+        if not netutil.is_valid_url(url):
+            return
         if mime is None:
-            mime = ('application/dash+xml' if '.mpd' in url
-                    else 'application/vnd.apple.mpegurl')
+            mime = netutil.guess_mime(url)
         # header di default: un User-Agent browser (i TDT/CDN lo gradiscono)
         hdrs = headers if headers is not None else {'User-Agent': USER_AGENT}
         _configure_stream_item(li, mime, headers=hdrs)
@@ -224,10 +230,10 @@ def show_tdt_group(group):
     for ch in channels:
         add_video_item(
             ch['name'],
-            ch['url'],
+            build_url({'action': 'play_tdt', 'name': ch['name'], 'group': group}),
             icon=ch.get('icon') or None,
             fanart=ch.get('fanart') or None,
-            mode='direct',
+            mode='resolver',
         )
     xbmcplugin.endOfDirectory(HANDLE)
 
@@ -237,13 +243,40 @@ def show_tdt_channels():
     for ch in channels:
         add_video_item(
             ch['name'],
-            ch['url'],
+            build_url({'action': 'play_tdt', 'name': ch['name'],
+                       'group': ch.get('group') or ''}),
             icon=ch.get('icon') or None,
             fanart=ch.get('fanart') or None,
             plot=ch.get('group', ''),
-            mode='direct',
+            mode='resolver',
         )
     xbmcplugin.endOfDirectory(HANDLE)
+
+
+def play_tdt(name, group):
+    """Resolver per i canali TDT: ripesca le sorgenti, prova in ordine quella
+    che risponde (scartando feed morti o geobloccati es. HTTP 451) e la passa
+    al player. Fallback automatico tra piu' sorgenti."""
+    ch = tdt.find_channel(name, group or None)
+    sources = (ch.get('sources') if ch else None) or ([])
+    if not ch and name:
+        # canale non piu' presente nella lista (rimossa a monte)
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+        xbmcgui.Dialog().ok(
+            ADDON_NAME,
+            'Canale non piu disponibile nella lista TDT "%s".' % name)
+        return
+    for src in sources:
+        if netutil.probe_url(src):
+            play_resolved(src, title=name,
+                          mime=ch.get('mime') or netutil.guess_mime(src))
+            return
+    # nessuna sorgente ha risposto
+    xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+    xbmcgui.Dialog().ok(
+        ADDON_NAME,
+        'Nessuna sorgente disponibile per "%s" (canale spento o geobloccato '
+        'fuori dalla Spagna).' % name)
 
 
 def show_rtve_channels():
@@ -436,6 +469,8 @@ def router():
         show_tdt_groups()
     elif action == 'tdt_group':
         show_tdt_group(params.get('group'))
+    elif action == 'play_tdt':
+        play_tdt(params.get('name'), params.get('group'))
     elif action == 'rtve':
         show_rtve_channels()
     elif action == 'vod':
