@@ -73,15 +73,96 @@ def add_dir_item(title, query, art=None, fanart=None, plot=''):
     )
 
 
-def add_video_item(title, url, icon=None, fanart=None, plot='', mode='direct'):
+USER_AGENT = (
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 '
+    '(KHTML, like Gecko) Chrome/120.0 Safari/537.36'
+)
+
+# mime che indicano un manifest HLS/DASH ( InputStream Adaptive )
+_MANIFEST_MIMES = (
+    'application/vnd.apple.mpegurl',
+    'application/x-mpegurl',
+    'application/dash+xml',
+)
+
+
+def _has_adaptive():
+    """True se InputStream Adaptive e' installato nel Kodi dell'utente."""
+    return xbmc.getCondVisibility('System.HasAddon(inputstream.adaptive)')
+
+
+def _headers_string(headers):
+    """Normalizza gli header in 'k=v&k2=v2' (valori url-encoded) per
+    inputstream.adaptive. Accetta un dict oppure una stringa gia' pronta
+    (es. quella restituita da plex/telemadrid.headers_string())."""
+    if not headers:
+        return ''
+    if isinstance(headers, str):
+        return headers
+    parts = []
+    for key, value in headers.items():
+        parts.append('%s=%s' % (key, urllib.parse.quote(str(value), safe='')))
+    return '&'.join(parts)
+
+
+def _configure_stream_item(li, mime, headers=None, subtitles=None):
+    """Applica a un ListItem i settaggi di riproduzione comuni (mime,
+    content lookup, InputStream Adaptive, header, sottotitoli).
+
+    Restituisce True se il flusso e' configurabile, False se e' richiesto
+    InputStream Adaptive per un DASH ma non e' installato.
+    """
+    li.setProperty('IsPlayable', 'true')
+    li.setMimeType(mime)
+    # per gli stream non serve la ricerca di metadati: la disattiviamo
+    li.setContentLookup(False)
+    is_manifest = mime in _MANIFEST_MIMES
+    adaptive = is_manifest and _has_adaptive()
+    if mime == 'application/dash+xml' and not adaptive:
+        return False
+    if adaptive:
+        li.setProperty('inputstream', 'inputstream.adaptive')
+        hs = _headers_string(headers)
+        if hs:
+            li.setProperty('inputstream.adaptive.manifest_headers', hs)
+            li.setProperty('inputstream.adaptive.stream_headers', hs)
+    if subtitles:
+        li.setSubtitles(subtitles)
+    return True
+
+
+def play_resolved(stream_url, title='', mime='application/vnd.apple.mpegurl',
+                  headers=None, subtitles=None):
+    """Resolve un flusso e lo passa al player con setResolvedUrl.
+
+    Punto di ingresso unico per tutti i canali 'resolver' (Plex, Telemadrid,
+    Pluto, RTVE, VOD): gestisce in modo coerente mime, header, content lookup
+    e InputStream Adaptive.
+    """
+    li = xbmcgui.ListItem(label=title, path=stream_url, offscreen=True)
+    if not _configure_stream_item(li, mime, headers=headers, subtitles=subtitles):
+        xbmcgui.Dialog().ok(
+            ADDON_NAME,
+            'Per questo canale (DASH) serve InputStream Adaptive: installalo '
+            'dal repository ufficiale di Kodi.',
+        )
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+        return
+    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+
+
+def add_video_item(title, url, icon=None, fanart=None, plot='', mode='direct',
+                   headers=None, mime=None):
     """Aggiunge una voce video.
 
-    mode='direct'   -> url e' il flusso HLS diretto: Kodi lo riproduce al click.
-    mode='resolver' -> url e' un plugin://play_rtve: al click Kodi esegue il
-                       plugin che chiama setResolvedUrl per ottenere lo stream.
-    In entrambi i casi IsPlayable=true cosi' Kodi instrada il click al player.
+    mode='direct'   -> url e' il flusso HLS/DASH diretto: Kodi lo riproduce al
+                       click. Gli header (se non specificati) defaultano a un
+                       User-Agent browser generico, utile per i CDN che li
+                       pretendono.
+    mode='resolver' -> url e' un plugin://...: al click Kodi esegue il plugin
+                       che chiama setResolvedUrl per ottenere lo stream.
     """
-    li = xbmcgui.ListItem(label=title)
+    li = xbmcgui.ListItem(label=title, offscreen=True)
     info = {'title': title, 'mediatype': 'video'}
     if plot:
         info['plot'] = plot
@@ -91,13 +172,14 @@ def add_video_item(title, url, icon=None, fanart=None, plot='', mode='direct'):
     if fanart:
         li.setProperty('fanart_image', fanart)
     li.setProperty('IsPlayable', 'true')
+    li.setContentLookup(False)
     if mode == 'direct':
-        li.setProperty('inputstream', 'inputstream.adaptive')
-        if '.mpd' in url:
-            li.setMimeType('application/dash+xml')
-        else:
-            li.setMimeType('application/vnd.apple.mpegurl')
-        li.setContentLookup(True)
+        if mime is None:
+            mime = ('application/dash+xml' if '.mpd' in url
+                    else 'application/vnd.apple.mpegurl')
+        # header di default: un User-Agent browser (i TDT/CDN lo gradiscono)
+        hdrs = headers if headers is not None else {'User-Agent': USER_AGENT}
+        _configure_stream_item(li, mime, headers=hdrs)
     xbmcplugin.addDirectoryItem(HANDLE, url, li, isFolder=False)
 
 
@@ -227,14 +309,12 @@ def show_plex_group(group):
 
 def play_plex(key):
     stream_url = plex.resolve(key)
-    li = xbmcgui.ListItem(path=stream_url)
-    li.setProperty('IsPlayable', 'true')
-    li.setProperty('inputstream', 'inputstream.adaptive')
-    li.setProperty('inputstream.adaptive.stream_headers', plex.headers_string())
-    li.setProperty('inputstream.adaptive.manifest_headers', plex.headers_string())
-    li.setMimeType('application/vnd.apple.mpegurl')
-    li.setContentLookup(True)
-    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    if not stream_url:
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+        xbmcgui.Dialog().ok(ADDON_NAME, 'Impossibile ottenere lo stream Plex.')
+        return
+    play_resolved(stream_url, mime='application/vnd.apple.mpegurl',
+                  headers=plex.headers_string())
 
 
 def play_telemadrid(cid):
@@ -244,25 +324,17 @@ def play_telemadrid(cid):
         xbmcgui.Dialog().ok(ADDON_NAME, err or 'Impossibile ottenere lo stream '
                             'Telemadrid.')
         return
-    li = xbmcgui.ListItem(path=stream_url)
-    li.setProperty('IsPlayable', 'true')
-    li.setProperty('inputstream', 'inputstream.adaptive')
-    _hdr = telemadrid.headers_string()
-    li.setProperty('inputstream.adaptive.stream_headers', _hdr)
-    li.setProperty('inputstream.adaptive.manifest_headers', _hdr)
-    li.setMimeType('application/vnd.apple.mpegurl')
-    li.setContentLookup(True)
-    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    play_resolved(stream_url, mime='application/vnd.apple.mpegurl',
+                  headers=telemadrid.headers_string())
 
 
 def play_pluto(channel_id):
     stream_url = pluto.resolve(channel_id)
-    li = xbmcgui.ListItem(path=stream_url)
-    li.setProperty('IsPlayable', 'true')
-    li.setProperty('inputstream', 'inputstream.adaptive')
-    li.setMimeType('application/vnd.apple.mpegurl')
-    li.setContentLookup(True)
-    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    if not stream_url:
+        xbmcplugin.endOfDirectory(HANDLE, succeeded=False)
+        xbmcgui.Dialog().ok(ADDON_NAME, 'Impossibile ottenere lo stream Pluto.')
+        return
+    play_resolved(stream_url, mime='application/vnd.apple.mpegurl')
 
 
 def show_vod_programs():
@@ -294,23 +366,14 @@ def show_vod_episodes(slug):
 def play_vod(video_id):
     stream_url = rtve_vod.resolve_url(video_id)
     subs = rtve_vod.get_subtitles(video_id)
-    li = xbmcgui.ListItem(path=stream_url)
-    li.setProperty('IsPlayable', 'true')
-    li.setProperty('inputstream', 'inputstream.adaptive')
-    _hdr = (
-        'Referer=https://www.rtve.es/&User-Agent=Mozilla/5.0 '
-        '(Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0 '
-        'Safari/537.36'
-    )
-    li.setProperty('inputstream.adaptive.stream_headers', _hdr)
-    li.setProperty('inputstream.adaptive.manifest_headers', _hdr)
-    li.setMimeType('application/vnd.apple.mpegurl')
-    li.setContentLookup(True)
-    # sottotitoli spagnoli come file esterni (.vtt): Kodi li gestisce senza
-    # il blocco dei sottotitoli live.
-    if subs:
-        li.setSubtitles(subs)
-    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    # RTVE applica hotlink: senza Referer/Origin il CDN risponde 403.
+    hdrs = {
+        'Referer': 'https://www.rtve.es/',
+        'Origin': 'https://www.rtve.es',
+        'User-Agent': USER_AGENT,
+    }
+    play_resolved(stream_url, mime='application/vnd.apple.mpegurl',
+                  headers=hdrs, subtitles=subs or None)
 
 
 def rtve_login():
@@ -352,22 +415,13 @@ def play_rtve(channel_id):
             'Spagna (HTTP 451): l\'account RTVE non bypassa il blocco del CDN.',
         )
         return
-    li = xbmcgui.ListItem(path=stream_url)
-    li.setProperty('IsPlayable', 'true')
-    li.setProperty('inputstream', 'inputstream.adaptive')
     # RTVE applica hotlink/geoblock: senza Referer/Origin il CDN risponde 403.
-    # Impostiamo gli header sia per il manifest sia per i segmenti (nomi
-    # storici di inputstream.adaptive) per essere sicuri che vengano inviati.
-    _hdr = (
-        'Referer=https://www.rtve.es/&Origin=https://www.rtve.es'
-        '&User-Agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:160.0) '
-        'Gecko/20100101 Firefox/160.0'
-    )
-    li.setProperty('inputstream.adaptive.stream_headers', _hdr)
-    li.setProperty('inputstream.adaptive.manifest_headers', _hdr)
-    li.setMimeType('application/vnd.apple.mpegurl')
-    li.setContentLookup(True)
-    xbmcplugin.setResolvedUrl(HANDLE, True, li)
+    hdrs = {
+        'Referer': 'https://www.rtve.es/',
+        'Origin': 'https://www.rtve.es',
+        'User-Agent': (USER_AGENT),
+    }
+    play_resolved(stream_url, mime='application/vnd.apple.mpegurl', headers=hdrs)
 
 
 def router():
