@@ -122,7 +122,11 @@ def _url_score(url):
     """Punteggio di affidabilita' (più basso = meglio).
 
     Gli URL con token firmati contengono lunghe sequenze esadecimali e spesso
-    scadono: penalizziamoli preferendo sorgenti 'pulite'.
+    scadono: penalizziamoli preferendo sorgenti 'pulite'. Un token reale e'
+    lungo (>= 12 caratteri); NON vanno scambiati per token i numeri di
+    risoluzione (720/576/1080/2160) ne' le brevi sequenze, altrimenti si
+    finisce per scartare la sorgente giusta (es. il feed internazionale
+    '..._1080.m3u8') a favore di quella geobloccata.
     """
     longest = 0
     run = 0
@@ -132,7 +136,8 @@ def _url_score(url):
             longest = max(longest, run)
         else:
             run = 0
-    return longest
+    # conta come 'token' solo le sequenze davvero lunghe
+    return longest if longest >= 12 else 0
 
 
 def get_groups():
